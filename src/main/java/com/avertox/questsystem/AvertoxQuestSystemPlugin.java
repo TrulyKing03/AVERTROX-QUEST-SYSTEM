@@ -145,7 +145,7 @@ public class AvertoxQuestSystemPlugin extends JavaPlugin {
         }
 
         if (storageManager != null) {
-            storageManager.shutdown().join();
+            storageManager.shutdown();
         }
 
         if (asyncExecutor != null) {
@@ -171,14 +171,10 @@ public class AvertoxQuestSystemPlugin extends JavaPlugin {
         Map<String, Map<String, Object>> questSections = new LinkedHashMap<>(loaded.questSections());
         Map<String, Map<String, Object>> eventSections = new LinkedHashMap<>(loaded.eventSections());
 
-        if (questSections.isEmpty()) {
-            questSections.putAll(storageManager.loadQuestDefinitions().join());
-        } else {
+        if (!questSections.isEmpty()) {
             storageManager.saveQuestDefinitions(questSections);
         }
-        if (eventSections.isEmpty()) {
-            eventSections.putAll(storageManager.loadEventDefinitions().join());
-        } else {
+        if (!eventSections.isEmpty()) {
             storageManager.saveEventDefinitions(eventSections);
         }
 
