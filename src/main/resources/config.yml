@@ -1,0 +1,40 @@
+storage:
+  mode: yaml # yaml or mysql
+  autosave_seconds: 60
+
+mysql:
+  host: localhost
+  port: 3306
+  database: avertox_quest
+  username: root
+  password: password
+  pool_size: 10
+
+quests:
+  assignment:
+    per_type: 3
+    daily_reset_hours: 24
+    weekly_reset_day: MONDAY
+    monthly_reset_days: 30
+  rewards:
+    xp_multiplier: 1.0
+    money_multiplier: 1.0
+  integration:
+    required_permission: ""
+
+events:
+  scheduler:
+    enabled: true
+    interval_minutes: 180
+    check_interval_ticks: 1200
+  broadcast:
+    bossbar_enabled: true
+  effects:
+    mining_speed_base_multiplier: 1.0
+    drop_rate_base_multiplier: 1.0
+
+api:
+  placeholder_format:
+    none_active: "No active event"
+    upcoming: "Upcoming: %event% in %minutes%m"
+    active: "Active: %event% (%minutes%m left)"

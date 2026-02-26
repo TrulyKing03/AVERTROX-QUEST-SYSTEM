@@ -1,0 +1,40 @@
+events:
+  speed_rush:
+    id: speed_rush
+    name: "Speed Rush"
+    description: "Run twice as fast for 30 minutes."
+    duration_minutes: 30
+    enabled: true
+    effects:
+      - type: WALK_SPEED_MULTIPLIER
+        value: 2.0
+      - type: XP_BOOST
+        value: 1.25
+
+  miners_frenzy:
+    id: miners_frenzy
+    name: "Miner's Frenzy"
+    description: "Mine faster and earn extra drops."
+    duration_minutes: 45
+    enabled: true
+    effects:
+      - type: MINING_SPEED_MODIFIER
+        value: 1.4
+      - type: DROP_RATE_MULTIPLIER
+        value: 1.35
+      - type: MONEY_BOOST
+        value: 1.20
+
+  alchemist_hour:
+    id: alchemist_hour
+    name: "Alchemist Hour"
+    description: "Gain haste and night vision across the world."
+    duration_minutes: 20
+    enabled: true
+    effects:
+      - type: POTION_EFFECT
+        potion: FAST_DIGGING
+        amplifier: 1
+      - type: POTION_EFFECT
+        potion: NIGHT_VISION
+        amplifier: 0

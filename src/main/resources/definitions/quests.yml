@@ -1,0 +1,84 @@
+quests:
+  q_miner_daily_01:
+    id: q_miner_daily_01
+    type: DAILY
+    title: "Stone Sprint"
+    description: "Mine 64 stone blocks in normal survival gameplay."
+    task:
+      task_type: MINE_ORES
+      material: STONE
+      target: 64
+    rewards:
+      xp: 150
+      money: 125
+      items:
+        - "IRON_INGOT:4"
+    repeatable: true
+
+  q_hunter_weekly_01:
+    id: q_hunter_weekly_01
+    type: WEEKLY
+    title: "Graveyard Shift"
+    description: "Defeat 30 zombies this week."
+    task:
+      task_type: KILL_MOBS
+      entity: ZOMBIE
+      target: 30
+    rewards:
+      xp: 500
+      money: 450
+      items:
+        - "EMERALD:2"
+    repeatable: true
+
+  q_crafter_monthly_01:
+    id: q_crafter_monthly_01
+    type: MONTHLY
+    title: "Master Smith"
+    description: "Craft 20 iron tools this month."
+    task:
+      task_type: CRAFT_ITEMS
+      material: IRON_PICKAXE
+      target: 20
+    rewards:
+      xp: 1600
+      money: 2000
+      items:
+        - "DIAMOND:8"
+    repeatable: true
+
+  q_explorer_daily_01:
+    id: q_explorer_daily_01
+    type: DAILY
+    title: "Ridge Scout"
+    description: "Visit the mountain lookout coordinates."
+    task:
+      task_type: VISIT_COORDINATES
+      world: world
+      x: 150
+      y: 90
+      z: -220
+      radius: 12
+      target: 1
+    rewards:
+      xp: 220
+      money: 160
+      items:
+        - "COMPASS:1"
+    repeatable: true
+
+  q_collector_daily_01:
+    id: q_collector_daily_01
+    type: DAILY
+    title: "Logistics"
+    description: "Pick up 48 oak logs from the world."
+    task:
+      task_type: COLLECT_BLOCKS
+      material: OAK_LOG
+      target: 48
+    rewards:
+      xp: 180
+      money: 150
+      items:
+        - "BREAD:12"
+    repeatable: true
