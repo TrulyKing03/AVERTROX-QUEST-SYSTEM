@@ -4,12 +4,14 @@ import com.avertox.questsystem.event.EventManager;
 import com.avertox.questsystem.model.QuestAction;
 import com.avertox.questsystem.quest.QuestManager;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
@@ -27,6 +29,26 @@ public class QuestProgressListener implements Listener {
     public QuestProgressListener(QuestManager questManager, EventManager eventManager) {
         this.questManager = questManager;
         this.eventManager = eventManager;
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onBlockDamage(BlockDamageEvent event) {
+        double multiplier = eventManager.miningSpeedMultiplier();
+        if (multiplier <= 1D || event.getInstaBreak()) {
+            return;
+        }
+
+        Material blockType = event.getBlock().getType();
+        if (!isSupportedMiningBlock(blockType) || !isMatchingTool(event.getPlayer(), blockType)) {
+            return;
+        }
+
+        // Server-side mining assist so mining boosts speed up actual block breaks, not just animation.
+        double boost = multiplier - 1D;
+        double instantChance = Math.min(0.80D, boost * 0.45D);
+        if (ThreadLocalRandom.current().nextDouble() <= instantChance) {
+            event.setInstaBreak(true);
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -100,5 +122,29 @@ public class QuestProgressListener implements Listener {
                 block.getWorld().dropItemNaturally(block.getLocation(), drop.clone());
             }
         }
+    }
+
+    private boolean isSupportedMiningBlock(Material blockType) {
+        return Tag.MINEABLE_PICKAXE.isTagged(blockType)
+                || Tag.MINEABLE_SHOVEL.isTagged(blockType)
+                || Tag.MINEABLE_AXE.isTagged(blockType);
+    }
+
+    private boolean isMatchingTool(Player player, Material blockType) {
+        Material held = player.getInventory().getItemInMainHand().getType();
+        if (held == Material.AIR) {
+            return false;
+        }
+        String heldName = held.name();
+        if (Tag.MINEABLE_PICKAXE.isTagged(blockType)) {
+            return heldName.endsWith("_PICKAXE");
+        }
+        if (Tag.MINEABLE_SHOVEL.isTagged(blockType)) {
+            return heldName.endsWith("_SHOVEL");
+        }
+        if (Tag.MINEABLE_AXE.isTagged(blockType)) {
+            return heldName.endsWith("_AXE");
+        }
+        return true;
     }
 }

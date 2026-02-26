@@ -355,7 +355,8 @@ public class EventManager {
             }
 
             if (type == EventEffectType.MINING_SPEED_MODIFIER) {
-                int amplifier = (int) Math.max(0D, Math.round((effect.value() - 1D) * 4D));
+                player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+                int amplifier = (int) Math.max(0D, Math.ceil((effect.value() - 1D) * 3D));
                 player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, Integer.MAX_VALUE, amplifier, true, false, true));
                 appliedPotionTypes.add(PotionEffectType.FAST_DIGGING);
                 continue;
