@@ -61,6 +61,15 @@ Use for placeholders/scoreboards:
 String display = api.getCurrentOrUpcomingEventDisplay();
 ```
 
+## Admin Event Operations
+
+Admin operators can manage global events in-game through:
+- `/event` (opens Event Admin GUI)
+- `/event gui` (opens Event Admin GUI)
+
+GUI runbook:
+- [`docs/ADMIN_EVENT_GUI.md`](ADMIN_EVENT_GUI.md)
+
 ## Bukkit Event Hooks
 
 Subscribe through Bukkit listener system:

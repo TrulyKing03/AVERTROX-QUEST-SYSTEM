@@ -20,6 +20,8 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -259,6 +261,30 @@ public class EventManager {
 
     public double miningSpeedMultiplier() {
         return miningSpeedMultiplier;
+    }
+
+    public List<GlobalEvent> getRegisteredEvents() {
+        List<GlobalEvent> list = new ArrayList<>(registry.all());
+        list.sort(Comparator.comparing(GlobalEvent::name, String.CASE_INSENSITIVE_ORDER));
+        return list;
+    }
+
+    public GlobalEvent getEvent(String eventId) {
+        return registry.get(eventId);
+    }
+
+    public long getLastTriggerTime(String eventId) {
+        if (eventId == null || eventId.isBlank()) {
+            return 0L;
+        }
+        return runtimeState.lastTriggerTimes().getOrDefault(eventId.toLowerCase(), 0L);
+    }
+
+    public long getActiveRemainingMillis() {
+        if (activeEvent == null) {
+            return 0L;
+        }
+        return TimeUtil.millisUntil(runtimeState.activeUntil());
     }
 
     private void createBossBar(GlobalEvent event) {

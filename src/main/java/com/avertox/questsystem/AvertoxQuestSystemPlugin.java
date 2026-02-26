@@ -221,7 +221,7 @@ public class AvertoxQuestSystemPlugin extends JavaPlugin {
 
         PluginCommand eventCmd = getCommand("event");
         if (eventCmd != null) {
-            eventCmd.setExecutor(new EventCommand(eventManager));
+            eventCmd.setExecutor(new EventCommand(eventManager, menuManager));
         } else {
             getLogger().warning("Command /event missing from plugin.yml");
         }

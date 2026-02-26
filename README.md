@@ -40,7 +40,7 @@ It includes:
 | Persistence | Player progress, reset timers, event trigger logs, definition snapshots |
 | Storage Backends | YAML and MySQL (switchable in config) |
 | Integrations | Economy (Vault runtime hook), permission-based gating, external progress API |
-| GUI | Main menu, details, completion claim, history, live refresh |
+| GUI | Quest suite + Event Admin Control GUI (console + detail panels) |
 | Admin Commands | `/quest add/reset/reload`, `/event start/stop/now/status` |
 | API Hooks | Register quests/events/tasks, trigger story events, subscribe via Bukkit events |
 
@@ -111,6 +111,8 @@ Validation is applied at load; invalid definitions are logged and skipped safely
 - `/quest add <player> <quest_id>`
 - `/quest reset <player>`
 - `/quest reload`
+- `/event` (opens Event Admin GUI)
+- `/event gui` (opens Event Admin GUI)
 - `/event start <id>`
 - `/event stop`
 - `/event now`
@@ -191,8 +193,28 @@ Menus included:
 - Quest Details Menu (objective, remaining amount, rewards)
 - Quest Completion Menu (explicit claim action)
 - Quest History Menu (completion/claim timeline)
+- Event Admin Control Center (`/event` or `/event gui`)
+- Event Admin Detail Panel (per-event runtime and direct controls)
 
 Menu refresh is wired to quest progress updates for live UX.
+
+---
+
+## Event Admin GUI Controls
+
+Main console (`/event`):
+- Left click event card: start selected event with broadcast
+- Shift + left click: start selected event silently
+- Right click event card: open event detail panel
+- Global controls: stop active, trigger random, refresh, page navigation
+
+Detail panel:
+- Start with broadcast
+- Start silently
+- Stop active event
+- View effects, last trigger time, remaining active time, next trigger ETA
+
+Full operator notes: [`docs/ADMIN_EVENT_GUI.md`](docs/ADMIN_EVENT_GUI.md)
 
 ---
 

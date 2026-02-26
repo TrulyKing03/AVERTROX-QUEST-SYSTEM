@@ -1,15 +1,20 @@
 package com.avertox.questsystem.command;
 
 import com.avertox.questsystem.event.EventManager;
+import com.avertox.questsystem.gui.MenuManager;
+import com.avertox.questsystem.gui.menu.EventAdminMenu;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class EventCommand implements CommandExecutor {
     private final EventManager eventManager;
+    private final MenuManager menuManager;
 
-    public EventCommand(EventManager eventManager) {
+    public EventCommand(EventManager eventManager, MenuManager menuManager) {
         this.eventManager = eventManager;
+        this.menuManager = menuManager;
     }
 
     @Override
@@ -19,11 +24,22 @@ public class EventCommand implements CommandExecutor {
             return true;
         }
         if (args.length == 0) {
-            sender.sendMessage("§eUsage: /event start <id>, /event stop, /event now, /event status");
+            if (sender instanceof Player player) {
+                menuManager.open(player, new EventAdminMenu(eventManager, menuManager));
+                return true;
+            }
+            sender.sendMessage("§eUsage: /event start <id>, /event stop, /event now, /event status, /event gui");
             return true;
         }
 
         switch (args[0].toLowerCase()) {
+            case "gui" -> {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage("§cOnly players can use the GUI.");
+                    return true;
+                }
+                menuManager.open(player, new EventAdminMenu(eventManager, menuManager));
+            }
             case "start" -> {
                 if (args.length < 2) {
                     sender.sendMessage("§cUsage: /event start <id>");
@@ -41,8 +57,9 @@ public class EventCommand implements CommandExecutor {
                 sender.sendMessage(ok ? "§aRandom event triggered." : "§cNo enabled events available.");
             }
             case "status" -> sender.sendMessage("§7" + eventManager.getCurrentOrUpcomingDisplay());
-            default -> sender.sendMessage("§eUsage: /event start <id>, /event stop, /event now, /event status");
+            default -> sender.sendMessage("§eUsage: /event start <id>, /event stop, /event now, /event status, /event gui");
         }
         return true;
     }
 }
+
