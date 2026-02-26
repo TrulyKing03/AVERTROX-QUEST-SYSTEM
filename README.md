@@ -11,6 +11,7 @@
   <img src="https://img.shields.io/badge/Language-Java%2017-orange?style=for-the-badge" alt="Java 17"/>
   <img src="https://img.shields.io/badge/Storage-MySQL%20or%20YAML-informational?style=for-the-badge" alt="Storage"/>
   <img src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge" alt="Status"/>
+  <img src="https://img.shields.io/badge/License-Private-red?style=for-the-badge" alt="License"/>
 </p>
 
 ---
@@ -195,17 +196,67 @@ Menu refresh is wired to quest progress updates for live UX.
 
 ---
 
+## Understanding the Plugin (Player FAQ)
+
+### What is a quest?
+A quest is a timed contract (Daily, Weekly, Monthly) with one objective and one reward package.
+
+### How do I start?
+Run `/quest` and complete active objectives shown in your Quest Main Menu.
+
+### How do I claim rewards?
+When progress reaches 100%, open quest details and click **Claim Reward**.
+
+### What rewards do I get?
+Quests can award XP, money, and item bundles from the quest definition.
+
+### Do quests reset?
+Yes. Daily, weekly, and monthly quests reset by configured intervals and reassign automatically.
+
+### Can admins force quests?
+Yes. `/quest add <player> <quest_id>` and `/quest reset <player>`.
+
+---
+
+## How Systems Interact (Big Picture)
+
+1. Definitions load from YAML/JSON at startup/reload.
+2. QuestManager assigns timed quests per player profile.
+3. Gameplay events (break/kill/craft/collect/move) feed progress updates.
+4. Completion unlocks reward claim flow in GUI.
+5. EventScheduler triggers global events on cadence or admin command.
+6. EventManager applies world modifiers and broadcasts start/end messages.
+7. Storage layer saves player progress + runtime state asynchronously.
+8. External systems use API hooks to add tasks, events, and custom progression.
+
+---
+
+## Progression Deep Dive
+
+### 1) Quest Lifecycle
+Assigned -> Progressed -> Completed -> Claimed -> Reset/Reassigned.
+
+### 2) Assignment Cadence
+- Daily: 24h interval
+- Weekly: configured reset weekday
+- Monthly: 30-day interval
+
+### 3) Reward Scaling
+XP and money are multiplied by configurable formulas and active global event boosts.
+
+### 4) Event Synergy
+Global events can boost XP, money, drop rate, mining speed, and movement, directly affecting quest pace.
+
+### 5) Safety and Persistence
+Reset timers and event runtime are persisted, so restart recovery continues cadence safely.
+
+---
+
 ## Notes
 
 - Built with Spigot API `1.20.4-R0.1-SNAPSHOT`
 - Java 17 target
 - Vault integration is runtime-discovered (no hard dependency required)
-
----
-
-## Developer
-
-Developed by **TrulyKing03**
 
 ---
 
