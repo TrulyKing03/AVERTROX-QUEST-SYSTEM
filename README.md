@@ -207,6 +207,14 @@ Menu refresh is wired to quest progress updates for live UX.
 
 Developed by **TrulyKing03**
 
+---
+
+## Developer & Rights
+
+Developed by **TrulyKing03**  
+All rights reserved.  
+Email: **TrulyKingDevs@gmail.com**
+
 <p align="center">
   <sub><b>AvertoxQuestSystem</b> - Designed for scalable progression-driven servers.</sub>
 </p>

@@ -71,3 +71,11 @@ Subscribe through Bukkit listener system:
 - `GlobalEventEndEvent`
 
 These let add-ons react to progression and global events without direct manager coupling.
+
+---
+
+## Rights
+
+Developed by **TrulyKing03**  
+All rights reserved.  
+Contact: **TrulyKingDevs@gmail.com**
