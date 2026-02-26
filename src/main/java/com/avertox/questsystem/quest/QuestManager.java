@@ -17,9 +17,15 @@ import com.avertox.questsystem.model.QuestReward;
 import com.avertox.questsystem.model.QuestType;
 import com.avertox.questsystem.util.TimeUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
+import org.bukkit.Sound;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -232,6 +238,7 @@ public class QuestManager {
             if (state.progress() != previous) {
                 changed = true;
                 Bukkit.getPluginManager().callEvent(new QuestProgressUpdateEvent(player, quest, state));
+                sendProgressActionBar(player, quest, state);
             }
 
             if (state.completed()) {
@@ -460,6 +467,7 @@ public class QuestManager {
         Bukkit.getPluginManager().callEvent(new QuestCompletedEvent(player, quest, state));
         storyEventBus.fire("quest_completed", new QuestStoryContext(player, quest, Collections.emptyMap()));
         profile.addHistory(historyLine(quest.id(), quest.title(), System.currentTimeMillis(), "COMPLETED"));
+        playCompletionCelebration(player);
         player.sendMessage("§aQuest completed: §f" + quest.title() + " §7- claim your rewards in the quest menu.");
         saveProfile(profile);
     }
@@ -500,6 +508,58 @@ public class QuestManager {
 
     private String historyLine(String questId, String title, long timestamp, String status) {
         return questId + "|" + title + "|" + timestamp + "|" + status;
+    }
+
+    private void sendProgressActionBar(Player player, Quest quest, PlayerQuestState state) {
+        String bar = buildProgressBar(state.progressPercent());
+        String message = "§6" + quest.title()
+                + " §8| §f" + state.progress() + "/" + state.target()
+                + " §8| " + bar
+                + " §e" + (int) Math.round(state.progressPercent()) + "%";
+        sendActionBarCompat(player, message);
+    }
+
+    private String buildProgressBar(double percent) {
+        int filled = (int) Math.round(Math.max(0D, Math.min(100D, percent)) / 10D);
+        StringBuilder sb = new StringBuilder("§8[");
+        for (int i = 0; i < 10; i++) {
+            sb.append(i < filled ? "§a▌" : "§7▌");
+        }
+        sb.append("§8]");
+        return sb.toString();
+    }
+
+    private void sendActionBarCompat(Player player, String message) {
+        try {
+            player.getClass().getMethod("sendActionBar", String.class).invoke(player, message);
+        } catch (Exception ignored) {
+            player.sendTitle("", message, 0, 20, 5);
+        }
+    }
+
+    private void playCompletionCelebration(Player player) {
+        Location base = player.getLocation().clone().add(0D, 1D, 0D);
+        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.15F);
+        launchFirework(base, Color.AQUA, Color.LIME, 1L);
+        launchFirework(base.clone().add(0.5D, 0D, 0.5D), Color.YELLOW, Color.ORANGE, 7L);
+    }
+
+    private void launchFirework(Location location, Color primary, Color fade, long detonateDelayTicks) {
+        if (location.getWorld() == null) {
+            return;
+        }
+        Firework firework = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
+        FireworkMeta meta = firework.getFireworkMeta();
+        meta.setPower(1);
+        meta.addEffect(FireworkEffect.builder()
+                .with(FireworkEffect.Type.BALL_LARGE)
+                .withColor(primary)
+                .withFade(fade)
+                .flicker(true)
+                .trail(true)
+                .build());
+        firework.setFireworkMeta(meta);
+        Bukkit.getScheduler().runTaskLater(plugin, firework::detonate, Math.max(1L, detonateDelayTicks));
     }
 
     public record QuestProgressView(Quest quest, PlayerQuestState state) {

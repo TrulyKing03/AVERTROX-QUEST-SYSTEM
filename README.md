@@ -23,6 +23,7 @@
 It includes:
 - Daily / Weekly / Monthly quest assignment and reset lifecycle
 - Per-player progress tracking with expiration and reward claiming
+- Live actionbar quest progress feedback with visual bar updates
 - Global event scheduler with configurable effects and broadcast delivery
 - Async persistence layer with pluggable storage (`yaml` or `mysql`)
 - External API for add-ons, story scripting, and custom quest logic
@@ -41,6 +42,7 @@ It includes:
 | Storage Backends | YAML and MySQL (switchable in config) |
 | Integrations | Economy (Vault runtime hook), permission-based gating, external progress API |
 | GUI | Quest suite + Event Admin Control GUI (console + detail panels) |
+| Feedback UX | Actionbar progress bar + quest completion celebration effects |
 | Admin Commands | `/quest add/reset/reload`, `/event start/stop/now/status` |
 | API Hooks | Register quests/events/tasks, trigger story events, subscribe via Bukkit events |
 
@@ -197,6 +199,11 @@ Menus included:
 - Event Admin Detail Panel (per-event runtime and direct controls)
 
 Menu refresh is wired to quest progress updates for live UX.
+Quest progress is also surfaced in the actionbar as a live progress bar while objectives advance.
+
+Completion celebration:
+- Firework burst at player location
+- Level-up sound cue (`ENTITY_PLAYER_LEVELUP`)
 
 ---
 
