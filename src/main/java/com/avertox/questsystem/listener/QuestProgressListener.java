@@ -20,11 +20,18 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class QuestProgressListener implements Listener {
+    private static final long MINING_HIT_TIMEOUT_MS = 1800L;
+    private static final int BASE_BREAK_HITS = 5;
+
     private final QuestManager questManager;
     private final EventManager eventManager;
+    private final Map<UUID, MiningHitState> miningHitStates = new ConcurrentHashMap<>();
 
     public QuestProgressListener(QuestManager questManager, EventManager eventManager) {
         this.questManager = questManager;
@@ -35,24 +42,40 @@ public class QuestProgressListener implements Listener {
     public void onBlockDamage(BlockDamageEvent event) {
         double multiplier = eventManager.miningSpeedMultiplier();
         if (multiplier <= 1D || event.getInstaBreak()) {
+            miningHitStates.remove(event.getPlayer().getUniqueId());
             return;
         }
 
         Material blockType = event.getBlock().getType();
         if (!isSupportedMiningBlock(blockType) || !isMatchingTool(event.getPlayer(), blockType)) {
+            miningHitStates.remove(event.getPlayer().getUniqueId());
             return;
         }
 
-        // Server-side mining assist so mining boosts speed up actual block breaks, not just animation.
-        double boost = multiplier - 1D;
-        double instantChance = Math.min(0.80D, boost * 0.45D);
-        if (ThreadLocalRandom.current().nextDouble() <= instantChance) {
-            event.setInstaBreak(true);
+        // Deterministic server-side mining assist so actual break speed matches event multiplier.
+        UUID uuid = event.getPlayer().getUniqueId();
+        long now = System.currentTimeMillis();
+        String key = blockKey(event.getBlock());
+
+        MiningHitState previous = miningHitStates.get(uuid);
+        int hits = 1;
+        if (previous != null && previous.blockKey().equals(key) && (now - previous.lastHitMs()) <= MINING_HIT_TIMEOUT_MS) {
+            hits = previous.hits() + 1;
         }
+
+        int requiredHits = requiredHitsFor(multiplier);
+        if (hits >= requiredHits) {
+            event.setInstaBreak(true);
+            miningHitStates.remove(uuid);
+            return;
+        }
+        miningHitStates.put(uuid, new MiningHitState(key, hits, now));
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onBlockBreak(BlockBreakEvent event) {
+        miningHitStates.remove(event.getPlayer().getUniqueId());
+
         Player player = event.getPlayer();
         Block block = event.getBlock();
         Material type = block.getType();
@@ -146,5 +169,19 @@ public class QuestProgressListener implements Listener {
             return heldName.endsWith("_AXE");
         }
         return true;
+    }
+
+    private int requiredHitsFor(double multiplier) {
+        if (multiplier <= 1D) {
+            return BASE_BREAK_HITS;
+        }
+        return Math.max(1, (int) Math.ceil(BASE_BREAK_HITS / multiplier));
+    }
+
+    private String blockKey(Block block) {
+        return block.getWorld().getName() + ":" + block.getX() + ":" + block.getY() + ":" + block.getZ();
+    }
+
+    private record MiningHitState(String blockKey, int hits, long lastHitMs) {
     }
 }

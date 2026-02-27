@@ -25,6 +25,8 @@ It includes:
 - Per-player progress tracking with expiration and reward claiming
 - Live actionbar quest progress feedback with visual bar updates
 - Global event scheduler with configurable effects and broadcast delivery
+- Mining event boost that accelerates both mining animation and actual block break speed
+- Visit-coordinate quest validation/regeneration (world border + Y-level safety)
 - Async persistence layer with pluggable storage (`yaml` or `mysql`)
 - External API for add-ons, story scripting, and custom quest logic
 - Polished GUI menus for active quests, quest detail, claim flow, and history
@@ -43,6 +45,7 @@ It includes:
 | Integrations | Economy (Vault runtime hook), permission-based gating, external progress API |
 | GUI | Quest suite + Event Admin Control GUI (console + detail panels) |
 | Feedback UX | Actionbar progress bar + quest completion celebration effects |
+| Safety Guards | Auto-fix invalid visit locations and mining boost conflict hardening |
 | Admin Commands | `/quest add/reset/reload`, `/event start/stop/now/status` |
 | API Hooks | Register quests/events/tasks, trigger story events, subscribe via Bukkit events |
 

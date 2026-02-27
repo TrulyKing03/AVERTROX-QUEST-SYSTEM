@@ -8,6 +8,9 @@ import com.avertox.questsystem.quest.Quest;
 import com.avertox.questsystem.quest.QuestTask;
 import com.avertox.questsystem.quest.QuestTaskRegistry;
 import com.avertox.questsystem.util.ItemCodec;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.WorldBorder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +71,10 @@ public class QuestDefinitionParser {
         if (target <= 0) {
             logger.warning("Quest " + id + " has non-positive target, forcing to 1.");
             target = 1;
+        }
+
+        if (taskType == QuestTaskType.VISIT_COORDINATES) {
+            sanitizeVisitCoordinates(questType, id, taskSection);
         }
 
         QuestTask task = taskRegistry.createTask(taskSection);
@@ -141,5 +148,84 @@ public class QuestDefinitionParser {
             return fallback;
         }
         return Boolean.parseBoolean(String.valueOf(raw));
+    }
+
+    private void sanitizeVisitCoordinates(QuestType questType, String questId, Map<String, Object> taskSection) {
+        String requestedWorld = asString(taskSection.getOrDefault("world", "world"));
+        World world = Bukkit.getWorld(requestedWorld);
+        boolean adjusted = false;
+        StringBuilder reasons = new StringBuilder();
+
+        if (world == null) {
+            List<World> worlds = Bukkit.getWorlds();
+            if (worlds.isEmpty()) {
+                logger.warning("Quest " + questId + " has visit location in unknown world '" + requestedWorld
+                        + "' and no worlds are loaded. Using raw coordinates.");
+                return;
+            }
+            world = worlds.get(0);
+            adjusted = true;
+            reasons.append("world fallback");
+        }
+
+        double x = asDouble(taskSection.get("x"), 0D);
+        double y = asDouble(taskSection.get("y"), 64D);
+        double z = asDouble(taskSection.get("z"), 0D);
+
+        WorldBorder border = world.getWorldBorder();
+        double half = Math.max(16D, border.getSize() / 2D - 2D);
+        double minX = border.getCenter().getX() - half;
+        double maxX = border.getCenter().getX() + half;
+        double minZ = border.getCenter().getZ() - half;
+        double maxZ = border.getCenter().getZ() + half;
+
+        double clampedX = clamp(x, minX, maxX);
+        double clampedZ = clamp(z, minZ, maxZ);
+        if (clampedX != x || clampedZ != z) {
+            adjusted = true;
+            appendReason(reasons, "outside world border");
+        }
+        x = clampedX;
+        z = clampedZ;
+
+        int minY = world.getMinHeight() + 1;
+        int maxY = world.getMaxHeight() - 2;
+        if (minY > maxY) {
+            minY = world.getMinHeight();
+            maxY = world.getMaxHeight() - 1;
+        }
+
+        boolean invalidY = y < minY || y > maxY;
+        if (invalidY) {
+            int surfaceY = world.getHighestBlockYAt((int) Math.floor(x), (int) Math.floor(z)) + 1;
+            y = clamp(surfaceY, minY, maxY);
+            adjusted = true;
+            appendReason(reasons, "invalid Y-level");
+        } else {
+            y = clamp(y, minY, maxY);
+        }
+
+        taskSection.put("world", world.getName());
+        taskSection.put("x", x);
+        taskSection.put("y", y);
+        taskSection.put("z", z);
+
+        if (adjusted) {
+            logger.info("Quest " + questId + " (" + questType.name()
+                    + ") visit location adjusted to valid coordinates in world "
+                    + world.getName() + " at (" + Math.round(x) + ", " + Math.round(y) + ", " + Math.round(z)
+                    + ") due to: " + reasons);
+        }
+    }
+
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private void appendReason(StringBuilder sb, String reason) {
+        if (sb.length() > 0) {
+            sb.append(", ");
+        }
+        sb.append(reason);
     }
 }
