@@ -11,11 +11,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockDamageAbortEvent;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -27,6 +29,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class QuestProgressListener implements Listener {
     private static final long MINING_HIT_TIMEOUT_MS = 1800L;
+    private static final int MAX_MINING_TARGET_DISTANCE = 6;
     private static final int BASE_BREAK_HITS = 5;
 
     private final QuestManager questManager;
@@ -70,6 +73,57 @@ public class QuestProgressListener implements Listener {
             return;
         }
         miningHitStates.put(uuid, new MiningHitState(key, hits, now));
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onPlayerAnimation(PlayerAnimationEvent event) {
+        double multiplier = eventManager.miningSpeedMultiplier();
+        UUID uuid = event.getPlayer().getUniqueId();
+        if (multiplier <= 1D) {
+            miningHitStates.remove(uuid);
+            return;
+        }
+
+        MiningHitState state = miningHitStates.get(uuid);
+        if (state == null) {
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+        if ((now - state.lastHitMs()) > MINING_HIT_TIMEOUT_MS) {
+            miningHitStates.remove(uuid);
+            return;
+        }
+
+        Player player = event.getPlayer();
+        Block target = player.getTargetBlockExact(MAX_MINING_TARGET_DISTANCE);
+        if (target == null || target.getType() == Material.AIR) {
+            miningHitStates.remove(uuid);
+            return;
+        }
+
+        Material blockType = target.getType();
+        if (!state.blockKey().equals(blockKey(target))
+                || !isSupportedMiningBlock(blockType)
+                || !isMatchingTool(player, blockType)) {
+            miningHitStates.remove(uuid);
+            return;
+        }
+
+        int hits = state.hits() + 1;
+        int requiredHits = requiredHitsFor(multiplier);
+        if (hits >= requiredHits) {
+            miningHitStates.remove(uuid);
+            player.breakBlock(target);
+            return;
+        }
+
+        miningHitStates.put(uuid, new MiningHitState(state.blockKey(), hits, now));
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onBlockDamageAbort(BlockDamageAbortEvent event) {
+        miningHitStates.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
